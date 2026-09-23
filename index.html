@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Semarang City Trains - Media Pembelajaran Interaktif Energi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Playful Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Fredoka', 'Quicksand', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* 16:9 Widescreen Container Lock */
+        body {
+            background-color: #0f172a;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #app-viewport {
+            width: 100vw;
+            height: 56.25vw; /* 16:9 Aspect Ratio */
+            max-height: 100vh;
+            max-width: 177.78vh; /* 16:9 Aspect Ratio */
+            position: relative;
+            background: url('https://i.imgur.com/CzuCfkL.png') center/cover no-repeat, linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+        }
+
+        /* Claymorphism Styling Tokens */
+        .clay-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.15),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.1),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.9);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .clay-btn {
+            background: #ff7675;
+            color: white;
+            border-radius: 20px;
+            padding: 12px 24px;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0 8px 0 #d63031,
+                0 12px 15px rgba(0,0,0,0.3),
+                inset 0 4px 6px rgba(255,255,255,0.4);
+            transition: all 0.1s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .clay-btn:active {
+            transform: translateY(6px);
+            box-shadow: 
+                0 2px 0 #d63031,
+                0 4px 6px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.4);
+        }
+
+        .clay-btn-yellow {
+            background: #fdcb6e;
+            box-shadow: 0 8px 0 #e1b12c, 0 12px 15px rgba(0,0,0,0.2), inset 0 4px 6px rgba(255,255,255,0.6);
+            color: #2d3436;
+        }
+        .clay-btn-yellow:active { box-shadow: 0 2px 0 #e1b12c, 0 4px 6px rgba(0,0,0,0.2); }
+
+        .clay-btn-blue {
+            background: #74b9ff;
+            box-shadow: 0 8px 0 #0984e3, 0 12px 15px rgba(0,0,0,0.2), inset 0 4px 6px rgba(255,255,255,0.6);
+            color: white;
+        }
+        .clay-btn-blue:active { box-shadow: 0 2px 0 #0984e3, 0 4px 6px rgba(0,0,0,0.2); }
+
+        .clay-btn-green {
+            background: #55efc4;
+            box-shadow: 0 8px 0 #00b894, 0 12px 15px rgba(0,0,0,0.2), inset 0 4px 6px rgba(255,255,255,0.6);
+            color: #2d3436;
+        }
+        .clay-btn-green:active { box-shadow: 0 2px 0 #00b894, 0 4px 6px rgba(0,0,0,0.2); }
+
+        /* Mode Inclusion Scaling */
+        .inclusion-mode {
+            font-size: 1.25rem !important;
+        }
+        .inclusion-mode .clay-btn {
+            transform: scale(1.15);
+            margin: 8px;
+            font-size: 1.3rem !important;
+        }
+
+        /* Animated Railway Track Line */
+        .rail-path {
+            stroke-dasharray: 12;
+            animation: dash 10s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -240; }
+        }
+
+        /* Train Station Node Animation */
+        @keyframes pulse-gold {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(253, 203, 110, 0.7); }
+            50% { transform: scale(1.08); box-shadow: 0 0 0 12px rgba(253, 203, 110, 0); }
+        }
+        .station-active {
+            animation: pulse-gold 2s infinite;
+        }
+
+        /* 3D Memory Card Flip */
+        .card-3d {
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card-3d.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Sound Wave Pulse */
+        .sound-wave {
+            animation: wave 1s ease-in-out infinite alternate;
+        }
+        @keyframes wave {
+            0% { transform: scale(0.95); opacity: 0.6; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MAIN VIEWPORT CONTAINER (Locked to 16:9 Aspect Ratio) -->
+    <div id="app-viewport" class="relative flex flex-col justify-between p-4 select-none">
+        
+        <!-- HEADER TOP BAR -->
+        <header id="top-bar" class="w-full flex justify-between items-center z-20 px-2 py-1">
+            <div class="flex items-center gap-3">
+                <div class="clay-card px-4 py-2 flex items-center gap-2 bg-amber-100 text-amber-900 border-2 border-amber-300">
+                    <img src="https://i.imgur.com/NoZEwld.png" alt="Kereta Semarang" class="w-8 h-8 object-contain">
+                    <div>
+                        <p class="text-xs font-bold leading-none text-amber-700">MASINIS CILIK</p>
+                        <h2 id="player-name-display" class="text-base font-bold leading-tight">Pengunjung</h2>
+                    </div>
+                </div>
+                <div class="clay-card px-3 py-2 flex items-center gap-2 bg-blue-100 border-2 border-blue-300">
+                    <span id="player-mode-badge" class="text-xs font-bold bg-blue-500 text-white px-2 py-1 rounded-full">REGULER</span>
+                </div>
+            </div>
+
+            <!-- Title Header Cloud -->
+            <div class="clay-card px-6 py-2 text-center bg-white/90 border-2 border-amber-400 shadow-md">
+                <h1 class="text-xl font-black text-amber-600 tracking-wider flex items-center gap-2">
+                    <span>SEMARANG CITY TRAINS</span>
+                    <span class="text-sm bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Sains Energi</span>
+                </h1>
+            </div>
+
+            <!-- Points, Stars & Audio Control -->
+            <div class="flex items-center gap-2">
+                <div class="clay-card px-3 py-1.5 flex items-center gap-2 bg-yellow-100 border-2 border-yellow-400">
+                    <span class="text-xl">⭐</span>
+                    <span id="total-stars-display" class="text-lg font-black text-yellow-700">0</span>
+                </div>
+                <div class="clay-card px-3 py-1.5 flex items-center gap-2 bg-emerald-100 border-2 border-emerald-400">
+                    <span class="text-xl">🏆</span>
+                    <span id="total-points-display" class="text-lg font-black text-emerald-700">0</span>
+                </div>
+                <button id="speaker-btn" onclick="toggleVoiceNarration()" class="clay-btn clay-btn-yellow !p-2.5 !rounded-full text-xl" title="Baca Teks (Voice-over)">
+                    🔊
+                </button>
+            </div>
+        </header>
+
+        <!-- DYNAMIC CONTENT SCREEN CONTAINER -->
+        <main id="main-content" class="relative w-full h-full flex-1 my-2 overflow-hidden flex items-center justify-center z-10">
+            <!-- Dynamic screens will be rendered here via JS -->
+        </main>
+
+        <!-- FOOTER NAV BAR -->
+        <footer id="bottom-bar" class="w-full flex justify-between items-center z-20 px-2 pt-1 border-t border-white/20">
+            <div class="flex items-center gap-2">
+                <button id="map-btn" onclick="goToMap()" class="clay-btn clay-btn-blue text-sm hidden">
+                    🗺️ Kembali ke Peta
+                </button>
+            </div>
+            <div class="text-xs text-white/80 font-semibold bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                Maskot: <span class="text-yellow-300 font-bold">Kiko si Masinis Cilik</span> 🧑‍✈️ | 16 Stasiun Energi
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openBadgeModal()" class="clay-btn clay-btn-yellow text-sm">
+                    🎖️ Lencana Saya
+                </button>
+            </div>
+        </footer>
+
+        <!-- MODAL OVERLAY FOR BADGES & NOTIFICATIONS -->
+        <div id="modal-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+            <div id="modal-card" class="clay-card bg-white p-6 max-w-lg w-11/12 text-center relative border-4 border-amber-400">
+                <button onclick="closeModal()" class="absolute top-3 right-3 text-gray-500 hover:text-black text-2xl font-bold">✕</button>
+                <div id="modal-body">
+                    <!-- Dynamic Modal Content -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // Global State & LocalStorage Schema
+        const APP_STORAGE_KEY = 'SemarangCityTrains_MPI_Data';
+        
+        let appData = {
+            playerName: 'Masinis Cilik',
+            mode: 'REGULER', // 'REGULER' or 'INKLUSI'
+            points: 0,
+            stars: 0,
+            currentStationIndex: 0,
+            unlockedStations: [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+            completedStations: [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+            stationStars: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            badges: [],
+            favoriteEnergy: '',
+            reflectionEmoji: ''
+        };
+
+        // Station Definitions (16 Districts in Semarang)
+        const STATIONS = [
+            { id: 1, name: "Banyumanik", title: "Petunjuk Bermain", zoneColor: "from-blue-400 to-indigo-600", desc: "Awal Perjalanan Kereta Energi" },
+            { id: 2, name: "Candisari", title: "Pengantar Misi", zoneColor: "from-emerald-400 to-teal-600", desc: "Misi Rahasia Energi Semarang" },
+            { id: 3, name: "Gajahmungkur", title: "Profil & Pre-Test", zoneColor: "from-amber-400 to-orange-500", desc: "Pendaftaran Masinis & Tes Awal" },
+            { id: 4, name: "Gayamsari", title: "Pertanyaan Pemantik", zoneColor: "from-sky-400 to-cyan-600", desc: "Menemukan Energi di Sekitar" },
+            { id: 5, name: "Genuk", title: "Game Detektif Benda", zoneColor: "from-pink-400 to-rose-600", desc: "Detektif Benda & Hasil Energi" },
+            { id: 6, name: "Gunungpati", title: "Bentuk Energi", zoneColor: "from-green-400 to-emerald-700", desc: "Mengenal Berbagai Bentuk Energi" },
+            { id: 7, name: "Mijen", title: "Energi Gerak", zoneColor: "from-yellow-400 to-amber-600", desc: "Eksplorasi Energi Kinetik / Gerak" },
+            { id: 8, name: "Ngaliyan", title: "Energi Cahaya", zoneColor: "from-yellow-300 to-amber-500", desc: "Kuning Cerah Saklar Lampu Cahaya" },
+            { id: 9, name: "Pedurungan", title: "Energi Panas", zoneColor: "from-red-400 to-orange-600", desc: "Merah Koral Energi Thermal" },
+            { id: 10, name: "Semarang Barat", title: "Energi Bunyi", zoneColor: "from-purple-500 to-fuchsia-600", desc: "Ungu Magenta Suara Musik" },
+            { id: 11, name: "Semarang Selatan", title: "Energi Listrik", zoneColor: "from-cyan-400 to-blue-600", desc: "Rangkaian Listrik & Bel Sekolah" },
+            { id: 12, name: "Semarang Tengah", title: "Energi Kimia", zoneColor: "from-lime-400 to-green-600", desc: "Makanan & Baterai Mainan" },
+            { id: 13, name: "Semarang Timur", title: "Game Memory Pair", zoneColor: "from-violet-400 to-purple-700", desc: "Cocokkan Kartu Pasangan Energi" },
+            { id: 14, name: "Semarang Utara", title: "Evaluasi Akhir", zoneColor: "from-teal-400 to-cyan-700", desc: "Ujian Kelayakan Masinis Utama" },
+            { id: 15, name: "Tembalang", title: "Refleksi Siswa", zoneColor: "from-indigo-400 to-blue-700", desc: "Perasaan & Evaluasi Diri" },
+            { id: 16, name: "Tugu", title: "Papan Skor & Lencana", zoneColor: "from-amber-300 to-yellow-600", desc: "Stasiun Akhir & Awarding" }
+        ];
+
+        // Offline Web Audio API Synthesizer Engine
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playHornSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                
+                // Oscillators for dual-tone brass train horn
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc1.type = 'sawtooth';
+                osc2.type = 'square';
+
+                osc1.frequency.setValueAtTime(220, now); // A3
+                osc2.frequency.setValueAtTime(277.18, now); // C#4
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 1.2);
+                osc2.stop(now + 1.2);
+            } catch(e) { console.log('Audio init error', e); }
+        }
+
+        function playClickSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.08);
+            } catch(e) {}
+        }
+
+        function playCorrectSound() {
+            try {
+                const ctx = getAudioContext();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const start = ctx.currentTime + (idx * 0.1);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, start);
+                    gain.gain.setValueAtTime(0.25, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.3);
+                });
+            } catch(e) {}
+        }
+
+        function playWrongSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(90, ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            } catch(e) {}
+        }
+
+        // Instruments for Station 10 (Semarang Barat - Sound Energy)
+        function playInstrumentSound(type) {
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+            const gain = ctx.createGain();
+            gain.connect(ctx.destination);
+
+            if (type === 'drum') {
+                // Kick Drum synth
+                const osc = ctx.createOscillator();
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.3);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'gendang') {
+                // Pitch-bent Tabla/Gendang "Tung"
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(380, now + 0.05);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.4);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.connect(gain);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'gitar') {
+                // Plucked string sound
+                const osc = ctx.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(329.63, now); // E4 note
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                osc.connect(gain);
+                osc.start(now);
+                osc.stop(now + 0.8);
+            }
+        }
+
+        // Web Speech API Voice Narration Engine
+        let isSpeaking = false;
+        function speakText(textOverride) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const targetEl = document.getElementById('narration-text') || document.querySelector('.narration-box');
+            const textToSpeak = textOverride || (targetEl ? targetEl.innerText : "Selamat datang di Semarang City Trains");
+
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'id-ID';
+            utterance.rate = appData.mode === 'INKLUSI' ? 0.85 : 1.0;
+            utterance.pitch = 1.1; // Friendly tone for children
+
+            const speakerBtn = document.getElementById('speaker-btn');
+            utterance.onstart = () => {
+                isSpeaking = true;
+                if (speakerBtn) speakerBtn.classList.add('animate-bounce', 'bg-emerald-400');
+            };
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (speakerBtn) speakerBtn.classList.remove('animate-bounce', 'bg-emerald-400');
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleVoiceNarration() {
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                const speakerBtn = document.getElementById('speaker-btn');
+                if (speakerBtn) speakerBtn.classList.remove('animate-bounce', 'bg-emerald-400');
+            } else {
+                speakText();
+            }
+        }
+
+        // LocalStorage Engine
+        function loadSavedData() {
+            try {
+                const stored = localStorage.getItem(APP_STORAGE_KEY);
+                if (stored) {
+                    appData = { ...appData, ...JSON.parse(stored) };
+                }
+            } catch(e) { console.error("Storage load error", e); }
+            updateUIHeader();
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(appData));
+            } catch(e) { console.error("Storage save error", e); }
+            updateUIHeader();
+            checkBadges();
+        }
+
+        function updateUIHeader() {
+            document.getElementById('player-name-display').innerText = appData.playerName || "Masinis Cilik";
+            document.getElementById('player-mode-badge').innerText = appData.mode;
+            document.getElementById('total-stars-display').innerText = appData.stars;
+            document.getElementById('total-points-display').innerText = appData.points;
+            
+            // Mode visual scaling for Inclusion mode
+            const viewport = document.getElementById('app-viewport');
+            if (appData.mode === 'INKLUSI') {
+                viewport.classList.add('inclusion-mode');
+            } else {
+                viewport.classList.remove('inclusion-mode');
+            }
+        }
+
+        function checkBadges() {
+            const completedCount = appData.completedStations.filter(Boolean).length;
+            let newBadge = null;
+
+            if (completedCount >= 5 && !appData.badges.includes('Lencana Perak')) {
+                appData.badges.push('Lencana Perak');
+                newBadge = { title: 'Lencana Perak 🥈', desc: 'Masinis Muda Semarang! Berhasil menyelesaikan 5 stasiun!' };
+            }
+            if (completedCount >= 10 && !appData.badges.includes('Lencana Emas')) {
+                appData.badges.push('Lencana Emas');
+                newBadge = { title: 'Lencana Emas 🥇', desc: 'Detektif Energi Hebat! Menjelajahi 10 stasiun!' };
+            }
+            if (completedCount >= 16 && !appData.badges.includes('Lencana Utama')) {
+                appData.badges.push('Lencana Utama');
+                newBadge = { title: 'Lencana Utama 👑', desc: 'Masinis Utama Semarang! Menuntaskan seluruh petualangan!' };
+            }
+
+            if (newBadge) {
+                showModal(`
+                    <div class="text-center">
+                        <div class="text-6xl mb-3 animate-bounce">🏆</div>
+                        <h3 class="text-2xl font-black text-amber-600 mb-1">${newBadge.title}</h3>
+                        <p class="text-gray-700 mb-4 font-semibold">${newBadge.desc}</p>
+                        <button onclick="closeModal()" class="clay-btn clay-btn-green">Terima Kasih! 🎉</button>
+                    </div>
+                `);
+            }
+        }
+
+        function completeStation(stationIdx, starsEarned = 3, pointsEarned = 100) {
+            appData.completedStations[stationIdx] = true;
+            if (starsEarned > appData.stationStars[stationIdx]) {
+                const diffStars = starsEarned - appData.stationStars[stationIdx];
+                appData.stars += diffStars;
+                appData.stationStars[stationIdx] = starsEarned;
+            }
+            appData.points += pointsEarned;
+
+            // Unlock next station automatically
+            if (stationIdx + 1 < STATIONS.length) {
+                appData.unlockedStations[stationIdx + 1] = true;
+            }
+            saveData();
+        }
+
+        // Navigation Handlers
+        function goToMap() {
+            playClickSound();
+            document.getElementById('map-btn').classList.add('hidden');
+            renderMapScreen();
+            if (appData.mode === 'INKLUSI') {
+                speakText("Peta Rel Kota Semarang. Pilih stasiun bertanda hijau atau bintang untuk melanjutkan perjalanan kereta!");
+            }
+        }
+
+        function renderMapScreen() {
+            const mainContent = document.getElementById('main-content');
+            
+            // Map Layout: SVG Railway Winding Path + Station Nodes
+            let mapHTML = `
+                <div class="relative w-full h-full clay-card bg-white/40 backdrop-blur-sm overflow-hidden p-2 flex flex-col justify-between">
+                    
+                    <!-- Map Background Details -->
+                    <div class="absolute top-4 left-6 text-2xl opacity-80">☁️</div>
+                    <div class="absolute top-8 right-12 text-3xl opacity-80">☁️</div>
+                    <div class="absolute bottom-6 left-12 text-2xl">🌲</div>
+                    <div class="absolute bottom-8 right-1/3 text-3xl">🌳</div>
+
+                    <!-- Header Map Title -->
+                    <div class="z-10 flex justify-between items-center px-4 pt-1">
+                        <div class="bg-white/80 backdrop-blur-md px-4 py-1 rounded-full border-2 border-amber-400 shadow">
+                            <span class="font-black text-amber-800 text-sm">PETA REL KOTA SEMARANG (16 KECAMATAN)</span>
+                        </div>
+                        <div class="text-xs bg-amber-100 text-amber-900 font-bold px-3 py-1 rounded-full">
+                            Stasiun Terbuka: ${appData.unlockedStations.filter(Boolean).length}/16
+                        </div>
+                    </div>
+
+                    <!-- SVG Track Railway -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 800 450" preserveAspectRatio="none">
+                        <path d="M 60,390 C 180,390 120,290 220,290 C 320,290 280,390 380,390 C 480,390 450,270 550,270 C 650,270 620,380 720,380 C 760,380 750,220 680,180 C 600,140 650,70 520,80 C 390,90 420,170 300,170 C 180,170 200,80 80,80" 
+                              fill="none" stroke="#d97706" stroke-width="14" stroke-linecap="round"/>
+                        <path class="rail-path" d="M 60,390 C 180,390 120,290 220,290 C 320,290 280,390 380,390 C 480,390 450,270 550,270 C 650,270 620,380 720,380 C 760,380 750,220 680,180 C 600,140 650,70 520,80 C 390,90 420,170 300,170 C 180,170 200,80 80,80" 
+                              fill="none" stroke="#fef08a" stroke-width="6" stroke-dasharray="8,8" stroke-linecap="round"/>
+                    </svg>
+
+                    <!-- Station Nodes Grid Map Layout -->
+                    <div class="relative z-10 grid grid-cols-8 gap-2 p-4 h-full items-center">
+            `;
+
+            // Coordinate layout for 16 stations over the track
+            const nodeCoords = [
+                { r: 4, c: 1 }, { r: 3, c: 2 }, { r: 4, c: 3 }, { r: 3, c: 4 },
+                { r: 4, c: 5 }, { r: 3, c: 6 }, { r: 4, c: 7 }, { r: 3, c: 8 },
+                { r: 2, c: 8 }, { r: 2, c: 7 }, { r: 1, c: 6 }, { r: 2, c: 5 },
+                { r: 2, c: 4 }, { r: 1, c: 3 }, { r: 2, c: 2 }, { r: 1, c: 1 }
+            ];
+
+            STATIONS.forEach((st, idx) => {
+                const isUnlocked = appData.unlockedStations[idx];
+                const isCompleted = appData.completedStations[idx];
+                const stars = appData.stationStars[idx] || 0;
+                const pos = nodeCoords[idx];
+
+                let nodeStatusClass = "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-75";
+                let icon = "🔒";
+                
+                if (isCompleted) {
+                    nodeStatusClass = "bg-emerald-400 text-white border-emerald-600 shadow-lg cursor-pointer hover:scale-110";
+                    icon = "✅";
+                } else if (isUnlocked) {
+                    nodeStatusClass = "bg-amber-400 text-amber-900 border-amber-600 shadow-xl station-active cursor-pointer hover:scale-110";
+                    icon = `<img src="https://i.imgur.com/NoZEwld.png" alt="Kereta" class="w-6 h-6 object-contain inline-block">`;
+                }
+
+                mapHTML += `
+                    <div style="grid-row: ${pos.r}; grid-column: ${pos.c};" class="flex flex-col items-center justify-center">
+                        <button onclick="selectStation(${idx})" ${!isUnlocked ? 'disabled' : ''} 
+                                class="w-11 h-11 rounded-2xl border-4 flex flex-col items-center justify-center font-black transition-all ${nodeStatusClass}">
+                            <span class="text-sm leading-none">${icon}</span>
+                            <span class="text-[10px] font-black">${st.id}</span>
+                        </button>
+                        <div class="bg-white/90 px-1.5 py-0.5 rounded-md border border-amber-300 shadow text-[9px] font-bold text-gray-800 mt-1 whitespace-nowrap text-center max-w-[80px] truncate">
+                            ${st.name}
+                        </div>
+                        ${isCompleted ? `<div class="text-[9px] text-amber-600 font-black">⭐${stars}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            mapHTML += `
+                    </div>
+                </div>
+            `;
+            mainContent.innerHTML = mapHTML;
+        }
+
+        function selectStation(idx) {
+            playClickSound();
+            if (!appData.unlockedStations[idx]) return;
+            appData.currentStationIndex = idx;
+            document.getElementById('map-btn').classList.remove('hidden');
+            renderStation(idx);
+        }
+
+        // Dynamic Station Renderer Router
+        function renderStation(idx) {
+            const mainContent = document.getElementById('main-content');
+            const station = STATIONS[idx];
+
+            let contentHTML = '';
+
+            switch(idx + 1) {
+                case 1: contentHTML = renderStation1(station); break;
+                case 2: contentHTML = renderStation2(station); break;
+                case 3: contentHTML = renderStation3(station); break;
+                case 4: contentHTML = renderStation4(station); break;
+                case 5: contentHTML = renderStation5(station); break;
+                case 6: contentHTML = renderStation6(station); break;
+                case 7: contentHTML = renderStation7(station); break;
+                case 8: contentHTML = renderStation8(station); break;
+                case 9: contentHTML = renderStation9(station); break;
+                case 10: contentHTML = renderStation10(station); break;
+                case 11: contentHTML = renderStation11(station); break;
+                case 12: contentHTML = renderStation12(station); break;
+                case 13: contentHTML = renderStation13(station); break;
+                case 14: contentHTML = renderStation14(station); break;
+                case 15: contentHTML = renderStation15(station); break;
+                case 16: contentHTML = renderStation16(station); break;
+                default: contentHTML = `<div class="p-4 text-white">Stasiun tidak ditemukan</div>`;
+            }
+
+            mainContent.innerHTML = `
+                <div class="w-full h-full clay-card p-5 flex flex-col justify-between relative overflow-hidden text-white" style="background: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35)), url('https://i.imgur.com/nKLuQSL.png') center/cover no-repeat;">
+                    <!-- Station Header Ribbon -->
+                    <div class="flex justify-between items-center bg-black/40 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/30">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-amber-400 text-amber-900 font-black px-3 py-1 rounded-xl text-sm">STASIUN ${station.id}</span>
+                            <h2 class="text-lg font-black tracking-wide">${station.name.toUpperCase()} - ${station.title}</h2>
+                        </div>
+                        <div class="text-xs bg-white/30 px-3 py-1 rounded-full font-bold">
+                            ${station.desc}
+                        </div>
+                    </div>
+
+                    <!-- Station Main Body -->
+                    <div id="station-body" class="flex-1 my-3 flex items-center justify-center overflow-y-auto">
+                        ${contentHTML}
+                    </div>
+                </div>
+            `;
+
+            // Auto Narration Voice Over
+            if (appData.mode === 'INKLUSI') {
+                setTimeout(() => speakText(), 300);
+            }
+        }
+
+        // --- INDIVIDUAL STATION IMPLEMENTATIONS ---
+
+        // 1. BANYUMANIK (Title & Horn)
+        function renderStation1(st) {
+            return `
+                <div class="text-center max-w-xl flex flex-col items-center">
+                    <img src="https://i.imgur.com/NoZEwld.png" alt="Kereta Semarang" class="w-24 h-24 object-contain mb-2 animate-bounce">
+                    <div class="clay-card bg-white/90 text-gray-800 p-4 mb-4 text-left border-2 border-amber-300">
+                        <p id="narration-text" class="text-base font-semibold">
+                            Halo! Aku <span class="text-amber-600 font-bold">Kiko si Masinis Cilik</span>. 
+                            Selamat datang di kereta Semarang City Trains! Tugasmu adalah mengemudikan kereta menjelajahi 16 kecamatan di Kota Semarang untuk menyelesaikan misi sains tentang <b>Energi</b>.
+                        </p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="playHornSound(); speakText('Tuut tuut! Kereta siap berangkat!');" class="clay-btn clay-btn-yellow text-lg">
+                            🎺 Bunyikan Klakson Kereta
+                        </button>
+                        <button onclick="completeStation(0, 3, 50); goToMap();" class="clay-btn clay-btn-green text-lg">
+                            🚀 Mulai Perjalanan!
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2. CANDISARI (Mission Intro)
+        function renderStation2(st) {
+            return `
+                <div class="grid grid-cols-2 gap-4 items-center max-w-2xl">
+                    <div class="clay-card bg-white/90 text-gray-800 p-5 border-2 border-emerald-300">
+                        <h3 class="text-lg font-bold text-emerald-700 mb-2">🎯 MISI RAHASIA ENERGI</h3>
+                        <p id="narration-text" class="text-sm font-semibold leading-relaxed">
+                            Di Kota Semarang, energi ada di mana-mana! Dari lampu kota, panas matahari, bunyi klakson, hingga makanan ganjel ganjil khas Semarang. 
+                            Bantu Kiko mengumpulkan semua rahasia energi untuk menjadi <b>Masinis Utama Semarang</b>!
+                        </p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center gap-3">
+                        <div class="text-6xl">🔍⚡</div>
+                        <button onclick="completeStation(1, 3, 50); goToMap();" class="clay-btn clay-btn-yellow text-base">
+                            Siap Jalankan Misi! 🗺️
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. GAJAHMUNGKUR (Profile & Pre-Test)
+        function renderStation3(st) {
+            return `
+                <div class="w-full max-w-2xl clay-card bg-white/95 text-gray-800 p-5 border-2 border-amber-400">
+                    <h3 class="text-lg font-black text-amber-700 mb-3 text-center">📝 Pendaftaran Masinis & Pre-Test</h3>
+                    <div id="narration-text" class="sr-only">Isi nama siswa dan pilih mode bermain. Mode inklusi memberikan tombol lebih besar dan petunjuk khusus.</div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-600 block mb-1">NAMA LENGKAP SISWA:</label>
+                            <input type="text" id="input-student-name" value="${appData.playerName}" 
+                                   class="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:outline-none focus:border-amber-500 font-bold text-amber-900" placeholder="Ketik nama di sini...">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-600 block mb-1">MODE BELAJAR:</label>
+                            <div class="flex gap-2">
+                                <button onclick="setPlayerMode('REGULER')" id="btn-mode-reguler" class="flex-1 py-2 rounded-xl font-bold border-2 ${appData.mode === 'REGULER' ? 'bg-amber-400 border-amber-600 text-amber-950' : 'bg-gray-100 border-gray-300'}">REGULER</button>
+                                <button onclick="setPlayerMode('INKLUSI')" id="btn-mode-inklusi" class="flex-1 py-2 rounded-xl font-bold border-2 ${appData.mode === 'INKLUSI' ? 'bg-blue-400 border-blue-600 text-white' : 'bg-gray-100 border-gray-300'}">INKLUSI ♿</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pre Test Question -->
+                    <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 mb-4">
+                        <p class="text-xs font-bold text-amber-800 mb-1">SOAL PRE-TEST SINGKAT:</p>
+                        <p class="text-sm font-semibold text-gray-700 mb-2">Matahari memancarkan energi apa yang membuat bumi terang?</p>
+                        <div class="flex gap-3">
+                            <button onclick="answerPretest(true)" class="clay-btn clay-btn-yellow !py-1.5 text-xs flex-1">💡 Energi Cahaya</button>
+                            <button onclick="answerPretest(false)" class="clay-btn clay-btn-blue !py-1.5 text-xs flex-1">🔊 Energi Bunyi</button>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button onclick="saveProfileAndContinue()" class="clay-btn clay-btn-green">Simpan & Lanjut ke Peta 🗺️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setPlayerMode(mode) {
+            playClickSound();
+            appData.mode = mode;
+            saveData();
+            renderStation(2);
+        }
+
+        function answerPretest(isCorrect) {
+            if (isCorrect) {
+                playCorrectSound();
+                alert("Benar sekali! Matahari menghasilkan energi cahaya dan panas. +50 Poin!");
+            } else {
+                playWrongSound();
+                alert("Kurang tepat. Matahari menghasilkan Energi Cahaya.");
+            }
+        }
+
+        function saveProfileAndContinue() {
+            const input = document.getElementById('input-student-name');
+            if (input && input.value.trim() !== '') {
+                appData.playerName = input.value.trim();
+            }
+            completeStation(2, 3, 100);
+            goToMap();
+        }
+
+        // 4. GAYAMSARI (Sparking Questions)
+        function renderStation4(st) {
+            return `
+                <div class="max-w-2xl text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-4 mb-4 border-2 border-sky-300">
+                        <p id="narration-text" class="text-sm font-semibold leading-relaxed">
+                            Pernahkah kamu bermain <b>layangan</b> di Simpang Lima, bermain <b>gasing</b>, atau mendengarkan <b>peluit pak polisi</b>?
+                            Semua benda di bawah ini membutuhkan energi untuk bekerja! Klik benda untuk melihat aksinya!
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3 mb-4">
+                        <button onclick="animateSpark('layangan'); speakText('Layangan terbang karena energi angin!');" class="clay-card bg-amber-100 p-3 flex flex-col items-center hover:scale-105 transition">
+                            <span class="text-4xl mb-1">🪁</span>
+                            <span class="text-xs font-bold text-amber-900">Layangan</span>
+                        </button>
+                        <button onclick="animateSpark('gasing'); speakText('Gasing berputar karena energi gerak!');" class="clay-card bg-pink-100 p-3 flex flex-col items-center hover:scale-105 transition">
+                            <span class="text-4xl mb-1">🪀</span>
+                            <span class="text-xs font-bold text-pink-900">Gasing</span>
+                        </button>
+                        <button onclick="animateSpark('lampu'); speakText('Lampu menyala dengan energi listrik!');" class="clay-card bg-yellow-100 p-3 flex flex-col items-center hover:scale-105 transition">
+                            <span class="text-4xl mb-1">💡</span>
+                            <span class="text-xs font-bold text-yellow-900">Lampu</span>
+                        </button>
+                        <button onclick="animateSpark('peluit'); speakText('Peluit berbunyi menghasilkan energi bunyi!');" class="clay-card bg-blue-100 p-3 flex flex-col items-center hover:scale-105 transition">
+                            <span class="text-4xl mb-1">📢</span>
+                            <span class="text-xs font-bold text-blue-900">Peluit</span>
+                        </button>
+                    </div>
+                    <button onclick="completeStation(3, 3, 50); goToMap();" class="clay-btn clay-btn-green">Selesai & Ke Peta 🗺️</button>
+                </div>
+            `;
+        }
+
+        function animateSpark(type) {
+            playClickSound();
+        }
+
+        // 5. GENUK (Detective Object Game)
+        function renderStation5(st) {
+            const isInc = appData.mode === 'INKLUSI';
+            const items = isInc ? [
+                { obj: "💡 Lampu", energy: "Cahaya" },
+                { obj: "📻 Radio", energy: "Bunyi" },
+                { obj: "🔥 Kompor", energy: "Panas" }
+            ] : [
+                { obj: "💡 Lampu", energy: "Cahaya" },
+                { obj: "📻 Radio", energy: "Bunyi" },
+                { obj: "🔥 Kompor", energy: "Panas" },
+                { obj: "⚽ Bola Bergulir", energy: "Gerak" },
+                { obj: "🔋 Baterai Mainan", energy: "Kimia" }
+            ];
+
+            return `
+                <div class="max-w-2xl w-full text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-rose-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>GAME DETEKTIF BENDA:</b> Jodohkan benda berikut dengan hasil energi utamanya! Klik benda lalu pilih energinya.
+                        </p>
+                    </div>
+
+                    <div id="matching-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                        ${items.map((item, i) => `
+                            <div class="clay-card bg-white p-2.5 flex justify-between items-center border border-rose-200">
+                                <span class="text-sm font-bold text-gray-800">${item.obj}</span>
+                                <select id="match-select-${i}" class="px-2 py-1 bg-rose-50 border border-rose-300 rounded-xl text-xs font-bold text-rose-900 focus:outline-none">
+                                    <option value="">-- Pilih Energi --</option>
+                                    <option value="Cahaya">Cahaya</option>
+                                    <option value="Bunyi">Bunyi</option>
+                                    <option value="Panas">Panas</option>
+                                    <option value="Gerak">Gerak</option>
+                                    <option value="Kimia">Kimia</option>
+                                </select>
+                            </div>
+                        `).map(x => x).join('')}
+                    </div>
+
+                    <button onclick="checkMatchingGame(${items.length})" class="clay-btn clay-btn-yellow">Periksa Jawaban 🔍</button>
+                </div>
+            `;
+        }
+
+        function checkMatchingGame(count) {
+            const answersInc = ["Cahaya", "Bunyi", "Panas"];
+            const answersReg = ["Cahaya", "Bunyi", "Panas", "Gerak", "Kimia"];
+            const target = appData.mode === 'INKLUSI' ? answersInc : answersReg;
+
+            let correct = 0;
+            for (let i = 0; i < count; i++) {
+                const sel = document.getElementById(`match-select-${i}`);
+                if (sel && sel.value === target[i]) {
+                    correct++;
+                }
+            }
+
+            if (correct === count) {
+                playCorrectSound();
+                completeStation(4, 3, 100);
+                showModal(`
+                    <div class="text-center">
+                        <div class="text-5xl mb-2">🎉</div>
+                        <h3 class="text-xl font-bold text-emerald-600 mb-2">Luar Biasa! Detektif Hebat!</h3>
+                        <p class="text-sm text-gray-600 mb-4">Semua pasangan energi benar!</p>
+                        <button onclick="closeModal(); goToMap();" class="clay-btn clay-btn-green">Kembali ke Peta 🗺️</button>
+                    </div>
+                `);
+            } else {
+                playWrongSound();
+                alert(`Baru ${correct} dari ${count} yang benar. Coba periksa kembali!`);
+            }
+        }
+
+        // 6. GUNUNGPATI (Bentuk Energi)
+        function renderStation6(st) {
+            return `
+                <div class="max-w-2xl text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-emerald-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            Klik kartu bentuk-bentuk energi di bawah ini untuk mempelajari ciri-cirinya!
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div onclick="speakText('Energi Panas berasal dari benda hangat atau terbakar seperti matahari dan api');" class="clay-card bg-orange-100 p-3 border border-orange-300 cursor-pointer hover:scale-105 transition">
+                            <span class="text-3xl">🔥</span>
+                            <h4 class="font-bold text-xs text-orange-900 mt-1">Energi Panas</h4>
+                            <p class="text-[10px] text-gray-600">Terasa hangat/panas</p>
+                        </div>
+                        <div onclick="speakText('Energi Cahaya menerangi kegelapan contohnya lampu dan senter');" class="clay-card bg-yellow-100 p-3 border border-yellow-300 cursor-pointer hover:scale-105 transition">
+                            <span class="text-3xl">💡</span>
+                            <h4 class="font-bold text-xs text-yellow-900 mt-1">Energi Cahaya</h4>
+                            <p class="text-[10px] text-gray-600">Membuat dapat melihat</p>
+                        </div>
+                        <div onclick="speakText('Energi Bunyi dihasilkan oleh getaran suara seperti musik');" class="clay-card bg-purple-100 p-3 border border-purple-300 cursor-pointer hover:scale-105 transition">
+                            <span class="text-3xl">🔊</span>
+                            <h4 class="font-bold text-xs text-purple-900 mt-1">Energi Bunyi</h4>
+                            <p class="text-[10px] text-gray-600">Bisa didengar telinga</p>
+                        </div>
+                    </div>
+                    <button onclick="completeStation(5, 3, 50); goToMap();" class="clay-btn clay-btn-green">Selesai & Ke Peta 🗺️</button>
+                </div>
+            `;
+        }
+
+        // 7. MIJEN (Energi Gerak)
+        function renderStation7(st) {
+            return `
+                <div class="max-w-xl text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-4 mb-4 border-2 border-amber-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>Energi Gerak (Kinetik):</b> Energi yang dimiliki oleh benda yang bergerak. Klik tombol untuk menggelindingkan bola!
+                        </p>
+                    </div>
+                    <div id="ball-canvas" class="w-full h-32 bg-amber-100 rounded-2xl border-2 border-amber-300 relative overflow-hidden mb-4 flex items-center">
+                        <div id="rolling-ball" class="text-4xl absolute left-4 transition-all duration-1000 ease-out">⚽</div>
+                        <div class="absolute right-6 text-4xl">🥅</div>
+                    </div>
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="rollBall()" class="clay-btn clay-btn-yellow">⚡ Tendang Bola!</button>
+                        <button onclick="completeStation(6, 3, 50); goToMap();" class="clay-btn clay-btn-green">Lanjut 🗺️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function rollBall() {
+            playClickSound();
+            const ball = document.getElementById('rolling-ball');
+            if (ball) {
+                ball.style.left = '75%';
+                setTimeout(() => {
+                    playCorrectSound();
+                    speakText("Gol! Bola bergerak menggunakan energi kinetik!");
+                }, 1000);
+            }
+        }
+
+        // 8. NGALIYAN (Energi Cahaya)
+        function renderStation8(st) {
+            return `
+                <div class="max-w-xl text-center w-full">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-amber-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>Simulasi Saklar Lampu Cahaya:</b> Tekan saklar besar untuk mengubah ruangan dari gelap menjadi terang!
+                        </p>
+                    </div>
+
+                    <div id="light-room" class="w-full h-36 rounded-2xl border-4 border-amber-400 bg-gray-900 transition-colors duration-500 flex flex-col items-center justify-center mb-4 relative">
+                        <span id="light-bulb" class="text-5xl opacity-30 transition-all">💡</span>
+                        <span id="light-text" class="text-xs font-bold text-gray-400 mt-2">Ruangan Gelap...</span>
+                    </div>
+
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="toggleLightSwitch()" class="clay-btn clay-btn-yellow text-base">🔴 Saklar Lampu (ON/OFF)</button>
+                        <button onclick="completeStation(7, 3, 50); goToMap();" class="clay-btn clay-btn-green">Lanjut 🗺️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        let isLightOn = false;
+        function toggleLightSwitch() {
+            playClickSound();
+            isLightOn = !isLightOn;
+            const room = document.getElementById('light-room');
+            const bulb = document.getElementById('light-bulb');
+            const text = document.getElementById('light-text');
+
+            if (isLightOn) {
+                room.className = "w-full h-36 rounded-2xl border-4 border-yellow-300 bg-yellow-200 transition-colors duration-500 flex flex-col items-center justify-center mb-4 relative shadow-2xl";
+                bulb.className = "text-5xl opacity-100 scale-125 transition-all drop-shadow-lg";
+                text.innerText = "Ruangan Terang benderang!";
+                text.className = "text-xs font-bold text-amber-900 mt-2";
+                speakText("Lampu menyala! Energi listrik diubah menjadi energi cahaya!");
+            } else {
+                room.className = "w-full h-36 rounded-2xl border-4 border-amber-400 bg-gray-900 transition-colors duration-500 flex flex-col items-center justify-center mb-4 relative";
+                bulb.className = "text-5xl opacity-30 transition-all";
+                text.innerText = "Ruangan Gelap...";
+                text.className = "text-xs font-bold text-gray-400 mt-2";
+            }
+        }
+
+        // 9. PEDURUNGAN (Energi Panas)
+        function renderStation9(st) {
+            return `
+                <div class="max-w-2xl text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-orange-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>Energi Panas (Thermal):</b> Digunakan untuk menjemur ikan asin khas Semarang dan memasak air.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div onclick="speakText('Matahari memancarkan panas untuk menjemur pakaian dan ikan');" class="clay-card bg-orange-100 p-3 border border-orange-300 cursor-pointer hover:scale-105 transition">
+                            <span class="text-4xl">☀️</span>
+                            <p class="text-xs font-bold text-orange-900 mt-1">Matahari</p>
+                        </div>
+                        <div onclick="speakText('Air hangat dihasilkan dari energi panas kompor atau pemanas');" class="clay-card bg-red-100 p-3 border border-red-300 cursor-pointer hover:scale-105 transition">
+                            <span class="text-4xl">☕</span>
+                            <p class="text-xs font-bold text-red-900 mt-1">Air Hangat</p>
+                        </div>
+                        <div onclick="speakText('Menjemur ikan asin memanfaatkan panas matahari sampai kering');" class="clay-card bg-amber-100 p-3 border border-amber-300 cursor-pointer hover:scale-105 transition">
+                            <span class="text-4xl">🐟</span>
+                            <p class="text-xs font-bold text-amber-900 mt-1">Jemur Ikan</p>
+                        </div>
+                    </div>
+                    <button onclick="completeStation(8, 3, 50); goToMap();" class="clay-btn clay-btn-green">Selesai & Ke Peta 🗺️</button>
+                </div>
+            `;
+        }
+
+        // 10. SEMARANG BARAT (Energi Bunyi)
+        function renderStation10(st) {
+            return `
+                <div class="max-w-2xl text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-purple-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>Energi Bunyi:</b> Klik alat musik instrumen di bawah ini untuk mendengar gelombang bunyi resminya!
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <button onclick="playInstrumentSound('drum'); speakText('Suara Drum!');" class="clay-btn clay-btn-blue flex-col !p-4">
+                            <span class="text-4xl mb-1">🥁</span>
+                            <span class="text-xs font-bold">DRUM</span>
+                        </button>
+                        <button onclick="playInstrumentSound('gendang'); speakText('Suara Gendang!');" class="clay-btn clay-btn-yellow flex-col !p-4">
+                            <span class="text-4xl mb-1">🪘</span>
+                            <span class="text-xs font-bold">GENDANG</span>
+                        </button>
+                        <button onclick="playInstrumentSound('gitar'); speakText('Suara Gitar!');" class="clay-btn clay-btn-green flex-col !p-4">
+                            <span class="text-4xl mb-1">🎸</span>
+                            <span class="text-xs font-bold">GITAR</span>
+                        </button>
+                    </div>
+                    <button onclick="completeStation(9, 3, 50); goToMap();" class="clay-btn clay-btn-green">Lanjut Ke Peta 🗺️</button>
+                </div>
+            `;
+        }
+
+        // 11. SEMARANG SELATAN (Energi Listrik)
+        function renderStation11(st) {
+            return `
+                <div class="max-w-xl text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-blue-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>Energi Listrik:</b> Aliran listrik mengalir melalui kabel untuk menyalakan kipas angin kelas dan bel sekolah.
+                        </p>
+                    </div>
+                    <div class="clay-card bg-sky-100 p-4 border-2 border-sky-300 mb-4 flex justify-around items-center">
+                        <div class="flex flex-col items-center">
+                            <span class="text-4xl">🔌</span>
+                            <span class="text-[10px] font-bold text-sky-900 mt-1">Sumber Listrik</span>
+                        </div>
+                        <div class="text-xl font-black text-blue-500 animate-pulse">⚡ ─── ⚡</div>
+                        <div class="flex flex-col items-center">
+                            <span id="fan-icon" class="text-4xl">🌀</span>
+                            <span class="text-[10px] font-bold text-sky-900 mt-1">Kipas Angin</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="spinFan()" class="clay-btn clay-btn-blue text-xs">🌀 Putar Kipas Angin</button>
+                        <button onclick="completeStation(10, 3, 50); goToMap();" class="clay-btn clay-btn-green text-xs">Lanjut 🗺️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function spinFan() {
+            playClickSound();
+            const fan = document.getElementById('fan-icon');
+            if (fan) {
+                fan.classList.add('animate-spin');
+                speakText("Listrik mengalir membuat kipas angin berputar!");
+                setTimeout(() => fan.classList.remove('animate-spin'), 3000);
+            }
+        }
+
+        // 12. SEMARANG TENGAH (Energi Kimia)
+        function renderStation12(st) {
+            return `
+                <div class="max-w-2xl text-center">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-green-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>Energi Kimia:</b> Makanan memberikan tenaga bagi tubuh kita untuk beraktivitas, sedangkan baterai menyimpan energi kimia untuk mainan!
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div onclick="speakText('Makanan bergizi memberi tubuh energi kimia agar bisa berlari');" class="clay-card bg-emerald-100 p-3 border border-emerald-300 cursor-pointer hover:scale-105 transition flex flex-col items-center">
+                            <span class="text-4xl">🍱</span>
+                            <span class="text-xs font-bold text-emerald-900 mt-1">Makanan -> Tenaga Tubuh</span>
+                        </div>
+                        <div onclick="speakText('Baterai menyimpan energi kimia untuk gerakan mobil mainan');" class="clay-card bg-lime-100 p-3 border border-lime-300 cursor-pointer hover:scale-105 transition flex flex-col items-center">
+                            <span class="text-4xl">🔋</span>
+                            <span class="text-xs font-bold text-lime-900 mt-1">Baterai -> Mainan</span>
+                        </div>
+                    </div>
+                    <button onclick="completeStation(11, 3, 50); goToMap();" class="clay-btn clay-btn-green">Selesai & Ke Peta 🗺️</button>
+                </div>
+            `;
+        }
+
+        // 13. SEMARANG TIMUR (Memory Pair Game)
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+
+        function renderStation13(st) {
+            const isInc = appData.mode === 'INKLUSI';
+            const pairs = isInc ? [
+                { id: 1, icon: '💡', name: 'Cahaya' },
+                { id: 2, icon: '🔥', name: 'Panas' },
+                { id: 3, icon: '🔊', name: 'Bunyi' }
+            ] : [
+                { id: 1, icon: '💡', name: 'Cahaya' },
+                { id: 2, icon: '🔥', name: 'Panas' },
+                { id: 3, icon: '🔊', name: 'Bunyi' },
+                { id: 4, icon: '⚽', name: 'Gerak' },
+                { id: 5, icon: '⚡', name: 'Listrik' },
+                { id: 6, icon: '🔋', name: 'Kimia' }
+            ];
+
+            // Duplicate & Shuffle
+            memoryCards = [...pairs, ...pairs]
+                .map((item, idx) => ({ ...item, uniqueId: idx }))
+                .sort(() => Math.random() - 0.5);
+
+            flippedCards = [];
+            matchedPairs = 0;
+
+            return `
+                <div class="max-w-2xl text-center w-full">
+                    <div class="clay-card bg-white/90 text-gray-800 p-2 mb-2 border-2 border-purple-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>GAME MEMORY PAIR:</b> Buka dua kartu yang sama untuk mencocokkan bentuk energi!
+                        </p>
+                    </div>
+
+                    <div id="memory-grid" class="grid ${isInc ? 'grid-cols-3' : 'grid-cols-4'} gap-2 mb-3 max-w-md mx-auto">
+                        ${memoryCards.map((card, idx) => `
+                            <div id="card-${idx}" onclick="flipMemoryCard(${idx})" class="card-3d h-16 cursor-pointer">
+                                <div class="card-inner">
+                                    <div class="card-front clay-card bg-amber-400 border-2 border-amber-500 font-black text-amber-900 text-lg">❓</div>
+                                    <div class="card-back clay-card bg-white border-2 border-purple-400 flex flex-col items-center justify-center">
+                                        <span class="text-2xl">${card.icon}</span>
+                                        <span class="text-[9px] font-bold text-gray-700">${card.name}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function flipMemoryCard(idx) {
+            if (flippedCards.length >= 2 || flippedCards.includes(idx)) return;
+            playClickSound();
+
+            const cardEl = document.getElementById(`card-${idx}`);
+            if (cardEl) cardEl.classList.add('flipped');
+
+            flippedCards.push(idx);
+
+            if (flippedCards.length === 2) {
+                const [idx1, idx2] = flippedCards;
+                if (memoryCards[idx1].id === memoryCards[idx2].id) {
+                    playCorrectSound();
+                    matchedPairs++;
+                    flippedCards = [];
+                    
+                    const totalRequired = memoryCards.length / 2;
+                    if (matchedPairs === totalRequired) {
+                        setTimeout(() => {
+                            completeStation(12, 3, 150);
+                            showModal(`
+                                <div class="text-center">
+                                    <div class="text-5xl mb-2">🎉</div>
+                                    <h3 class="text-xl font-bold text-purple-600 mb-2">Hebat! Semua Pasangan Cocok!</h3>
+                                    <button onclick="closeModal(); goToMap();" class="clay-btn clay-btn-green">Lanjut Ke Peta 🗺️</button>
+                                </div>
+                            `);
+                        }, 500);
+                    }
+                } else {
+                    playWrongSound();
+                    setTimeout(() => {
+                        document.getElementById(`card-${idx1}`)?.classList.remove('flipped');
+                        document.getElementById(`card-${idx2}`)?.classList.remove('flipped');
+                        flippedCards = [];
+                    }, 1000);
+                }
+            }
+        }
+
+        // 14. SEMARANG UTARA (Evaluasi Akhir 10 Soal)
+        const EVAL_QUESTIONS = [
+            { q: "1. Energi yang dihasilkan oleh matahari yang menerangi bumi adalah...", options: ["Energi Cahaya", "Energi Bunyi", "Energi Angin"], answer: 0 },
+            { q: "2. Alat musik drum yang dipukul menghasilkan...", options: ["Energi Listrik", "Energi Bunyi", "Energi Kimia"], answer: 1 },
+            { q: "3. Kompor api menyala menghasilkan energi...", options: ["Panas", "Cahaya Saja", "Dingin"], answer: 0 },
+            { q: "4. Kipas angin dapat berputar karena mendapatkan aliran...", options: ["Air", "Listrik", "Bunyi"], answer: 1 },
+            { q: "5. Makanan yang kita makan sehari-hari menyimpan energi...", options: ["Kimia", "Listrik", "Cahaya"], answer: 0 },
+            { q: "6. Bola yang ditendang dan bergulir memiliki energi...", options: ["Gerak", "Bunyi", "Diam"], answer: 0 },
+            { q: "7. Lampu senter menyala merubah energi kimia baterai menjadi energi...", options: ["Cahaya", "Panas Saja", "Bunyi"], answer: 0 },
+            { q: "8. Bunyi peluit pak polisi berasal dari getaran...", options: ["Udara ditiup", "Lampu", "Kabel"], answer: 0 },
+            { q: "9. Menjemur baju di bawah matahari memanfaatkan energi...", options: ["Panas Matahari", "Angin Malam", "Listrik"], answer: 0 },
+            { q: "10. Baterai mainan menyimpan jenis energi...", options: ["Kimia", "Bunyi", "Nuklir"], answer: 0 }
+        ];
+
+        let evalIndex = 0;
+        let evalScore = 0;
+
+        function renderStation14(st) {
+            evalIndex = 0;
+            evalScore = 0;
+            return renderEvalQuestionHTML();
+        }
+
+        function renderEvalQuestionHTML() {
+            const item = EVAL_QUESTIONS[evalIndex];
+            return `
+                <div class="max-w-2xl w-full text-center">
+                    <div class="clay-card bg-white/95 text-gray-800 p-4 mb-3 border-2 border-teal-400">
+                        <div class="flex justify-between items-center mb-2 border-b pb-1">
+                            <span class="text-xs font-black text-teal-700">SOAL EVALUASI ${evalIndex + 1} / 10</span>
+                            <span class="text-xs font-bold text-gray-500">Skor: ${evalScore}</span>
+                        </div>
+                        <p id="narration-text" class="text-sm font-bold text-gray-800 my-3">${item.q}</p>
+                        <div class="grid grid-cols-1 gap-2 mb-2">
+                            ${item.options.map((opt, i) => `
+                                <button onclick="answerEvalQuestion(${i})" class="clay-btn clay-btn-yellow !py-2 text-xs font-bold w-full text-left justify-start">
+                                    ${String.fromCharCode(65 + i)}. ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function answerEvalQuestion(selectedIdx) {
+            if (selectedIdx === EVAL_QUESTIONS[evalIndex].answer) {
+                playCorrectSound();
+                evalScore += 10;
+            } else {
+                playWrongSound();
+            }
+
+            evalIndex++;
+            if (evalIndex < EVAL_QUESTIONS.length) {
+                document.getElementById('station-body').innerHTML = renderEvalQuestionHTML();
+            } else {
+                completeStation(13, 3, evalScore * 2);
+                showModal(`
+                    <div class="text-center">
+                        <div class="text-5xl mb-2">🎓</div>
+                        <h3 class="text-xl font-bold text-teal-700 mb-1">Evaluasi Selesai!</h3>
+                        <p class="text-sm text-gray-700 font-bold mb-3">Nilai Akhir Evaluasi: <span class="text-2xl text-amber-600">${evalScore}</span> / 100</p>
+                        <button onclick="closeModal(); goToMap();" class="clay-btn clay-btn-green">Simpan & Ke Peta 🗺️</button>
+                    </div>
+                `);
+            }
+        }
+
+        // 15. TEMBALANG (Refleksi Siswa)
+        function renderStation15(st) {
+            return `
+                <div class="max-w-2xl text-center w-full">
+                    <div class="clay-card bg-white/90 text-gray-800 p-3 mb-3 border-2 border-indigo-300">
+                        <p id="narration-text" class="text-xs font-semibold">
+                            <b>REFLEKSI BELAJAR:</b> Bagaimana perasaanmu setelah menjelajahi energi di Semarang? Pilih emotikon dan materi favoritmu!
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-xs font-bold text-white mb-2">Perasaan Saya Hari Ini:</p>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="selectEmoji('😄 Gembira')" class="text-4xl hover:scale-125 transition">😄</button>
+                            <button onclick="selectEmoji('🤔 Penasaran')" class="text-4xl hover:scale-125 transition">🤔</button>
+                            <button onclick="selectEmoji('🤩 Takjub')" class="text-4xl hover:scale-125 transition">🤩</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-xs font-bold text-white mb-2">Materi Energi Paling Favorit:</p>
+                        <select id="select-favorite" class="px-3 py-2 bg-white rounded-xl text-xs font-bold text-gray-800 border-2 border-indigo-300">
+                            <option value="Energi Cahaya">Energi Cahaya (Ngaliyan)</option>
+                            <option value="Energi Bunyi">Energi Bunyi (Semarang Barat)</option>
+                            <option value="Energi Listrik">Energi Listrik (Semarang Selatan)</option>
+                            <option value="Energi Gerak">Energi Gerak (Mijen)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="saveReflection()" class="clay-btn clay-btn-green">Simpan Refleksi & Ke Peta 🗺️</button>
+                </div>
+            `;
+        }
+
+        function selectEmoji(emoji) {
+            playClickSound();
+            appData.reflectionEmoji = emoji;
+            speakText(`Perasaan diset ${emoji}`);
+        }
+
+        function saveReflection() {
+            const fav = document.getElementById('select-favorite');
+            if (fav) appData.favoriteEnergy = fav.value;
+            completeStation(14, 3, 50);
+            goToMap();
+        }
+
+        // 16. TUGU (Leaderboard & Teacher Mode)
+        function renderStation16(st) {
+            return `
+                <div class="max-w-2xl text-center w-full">
+                    <div class="clay-card bg-white/95 text-gray-800 p-4 mb-3 border-2 border-amber-400">
+                        <h3 class="text-base font-black text-amber-700 mb-2">🏆 PAPAN SKOR MASINIS SEMARANG</h3>
+                        
+                        <div class="bg-amber-50 rounded-2xl p-3 text-left border border-amber-200 mb-3 space-y-1.5 text-xs">
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="font-bold text-gray-600">Nama Masinis:</span>
+                                <span class="font-black text-amber-900">${appData.playerName}</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="font-bold text-gray-600">Mode Belajar:</span>
+                                <span class="font-bold text-blue-700">${appData.mode}</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="font-bold text-gray-600">Total Bintang:</span>
+                                <span class="font-black text-yellow-600">⭐ ${appData.stars}</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-1">
+                                <span class="font-bold text-gray-600">Total Poin Skor:</span>
+                                <span class="font-black text-emerald-600">🏆 ${appData.points}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-bold text-gray-600">Lencana Diraih:</span>
+                                <span class="font-bold text-purple-700">${appData.badges.join(', ') || 'Belum Ada'}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center gap-2">
+                            <button onclick="openTeacherResetModal()" class="clay-btn clay-btn-yellow text-xs">⚙️ Mode Guru (Reset Data)</button>
+                            <button onclick="completeStation(15, 3, 100); goToMap();" class="clay-btn clay-btn-green text-xs">Kembali Ke Peta 🗺️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openTeacherResetModal() {
+            showModal(`
+                <div class="text-center">
+                    <h3 class="text-lg font-bold text-red-600 mb-2">⚠️ Mode Guru: Reset Data</h3>
+                    <p class="text-xs text-gray-600 mb-4">Apakah Anda yakin ingin menghapus seluruh progres siswa dan memulai dari awal?</p>
+                    <div class="flex justify-center gap-3">
+                        <button onclick="resetAllData()" class="clay-btn clay-btn-yellow !bg-red-500 text-xs">Ya, Reset Sekarang</button>
+                        <button onclick="closeModal()" class="clay-btn text-xs">Batal</button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(APP_STORAGE_KEY);
+            location.reload();
+        }
+
+        // --- MODAL DIALOG ENGINE ---
+        function showModal(htmlContent) {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            if (overlay && body) {
+                body.innerHTML = htmlContent;
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function closeModal() {
+            playClickSound();
+            const overlay = document.getElementById('modal-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function openBadgeModal() {
+            playClickSound();
+            const badgeList = appData.badges.length > 0 ? 
+                appData.badges.map(b => `<li class="font-bold text-amber-800 text-sm py-1">🎖️ ${b}</li>`).join('') :
+                '<p class="text-xs text-gray-500">Selesaikan stasiun untuk meraih lencana masinis!</p>';
+
+            showModal(`
+                <div class="text-center">
+                    <h3 class="text-lg font-black text-amber-700 mb-2">🎖️ Koleksi Lencana Masinis</h3>
+                    <ul class="my-3 bg-amber-50 p-3 rounded-2xl border border-amber-200">
+                        ${badgeList}
+                    </ul>
+                    <button onclick="closeModal()" class="clay-btn clay-btn-yellow text-xs">Tutup</button>
+                </div>
+            `);
+        }
+
+        // APP INITIALIZATION ENTRY POINT
+        window.onload = function() {
+            loadSavedData();
+            // Start at station 1 or map screen
+            selectStation(0);
+        };
+    </script>
+</body>
+</html>
